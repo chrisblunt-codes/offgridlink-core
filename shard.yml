@@ -1,0 +1,19 @@
+name: offgridlink
+version: 0.1.0
+
+authors:
+  - Chris Blunt <contact@chrisblunt.codes>
+
+homepage: https://chrisblunt.codes
+repository: https://github.com/chrisblunt-codes/offgrid-link
+documentation: https://chrisblunt-codes.github.io/offgrid-link
+
+description: A lightweight tunneling system in Crystal for remote and bandwidth-limited environments.
+
+license: Apache-2.0
+
+crystal: ">= 1.17.0"
+
+targets:
+  offgridlink:
+    main: src/offgridlink.cr
