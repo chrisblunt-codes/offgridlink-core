@@ -15,5 +15,7 @@ license: Apache-2.0
 crystal: ">= 1.17.0"
 
 targets:
-  offgridlink:
-    main: src/offgridlink.cr
+  server:
+    main: src/ogl/server.cr
+  agent:
+    main: src/ogl/agent.cr
