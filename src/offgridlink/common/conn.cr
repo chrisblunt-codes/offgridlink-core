@@ -3,6 +3,8 @@
 
 require "socket"
 
+require "./frame"
+
 module OGL
   class Conn
     getter io : IO
@@ -18,6 +20,18 @@ module OGL
       io.gets.try &.chomp
     end
 
+    def send_frame(s : String)
+      send_frame s.to_slice
+    end
+
+    def send_frame(bytes : Bytes)
+      Frame.write(io, bytes)
+    end
+
+    def recv_frame : Bytes?
+      Frame.read(io)
+    end
+    
     def close
       io.close
     end

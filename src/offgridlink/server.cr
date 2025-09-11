@@ -14,8 +14,11 @@ module OGL
     def run
       puts "listening on #{@port}"
       if conn = accept_once
-        conn.send_line "PING"
-        puts "got: #{conn.recv_line}"
+
+        conn.send_frame "PING"
+        if bytes = conn.recv_frame
+          puts "got: #{String.new(bytes)}"
+        end
         conn.close
       end
     end

@@ -12,8 +12,11 @@ module OGL
     def run
       sock = TCPSocket.new @host, @port
       conn = Conn.new sock
-      puts "Server: #{conn.recv_line}"
-      conn.send_line "PONG"
+      if bytes = conn.recv_frame
+        puts "Server: #{String.new(bytes)}"
+      end
+
+      conn.send_frame "PONG"
       conn.close
     end
   end
