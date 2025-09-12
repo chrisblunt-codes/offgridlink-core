@@ -5,6 +5,7 @@ require "socket"
 
 require "./common/protocol"
 require "./common/conn"
+require "./common/backoff"
 require "./common/util"
 
 
@@ -29,20 +30,7 @@ module OGL
           msg = conn.recv_msg_obj
           break unless msg # EOF -> server closed
 
-          case msg.op
-          when Op::Hello
-            conn.send_msg Message.new(Op::Hello, "OK".to_slice)
-          when Op::AssignId
-            @id = Util.be_u64(msg.payload)
-            puts "assigned id=#{@id}"
-          when Op::Ping
-            conn.send_msg Message.new(Op::Pong, Bytes.empty)
-          when Op::Cmd, Op::Data
-            # handle as needed; for now just log
-            puts "server #{msg.op}: #{msg.string}"
-          else
-            # ignore unknowns for now
-          end
+          process_msg(conn, msg)
         rescue IO::Error
           # timeout / broken pipe / reset, etc.
           break
@@ -52,5 +40,42 @@ module OGL
       conn.close rescue nil
     end
 
+    def run_forever
+      attempt = 0
+      loop do
+        if connect_and_serve
+          attempt = 0  # clean exit -> reset backoff
+        else
+          attempt += 1
+          sleep OGL::Backoff.next_delay(attempt)
+        end
+      end
+    end
+
+    private def connect_and_serve : Bool
+      sock = TCPSocket.new @host, @port
+      return false unless Protocol.handshake_agent(sock)
+
+      conn = Conn.new sock
+      loop do
+        msg = conn.recv_msg_obj || break
+        process_msg(conn, msg)
+      end
+      conn.close rescue nil
+      true
+    rescue Socket::Error | IO::Error
+      false
+    end
+
+    private def process_msg(conn : Conn, msg : Message)
+      case msg.op
+       when Op::Hello         then  conn.send_msg Message.new(Op::Hello, "OK".to_slice)
+       when Op::AssignId      then @id = Util.be_u64(msg.payload)
+       when Op::Ping          then conn.send_msg Message.new(Op::Pong, Bytes.empty)
+       when Op::Cmd, Op::Data then puts "server #{msg.op}: #{msg.string}"
+       else
+         # ignore unknowns for now
+      end
+    end
   end
 end

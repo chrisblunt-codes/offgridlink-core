@@ -52,7 +52,7 @@ module OGL
 
     case mode
     when :server then run_server(port)
-    when :agent  then Agent.new(addr, port).run
+    when :agent  then Agent.new(addr, port).run_forever
     when :send   then send_message(addr, port, to, msg)
     else
       puts "Unknown command"
