@@ -11,7 +11,9 @@ module OGL
   class Conn
     getter io : IO
 
-    def initialize(@io : IO); end
+    def initialize(@io : IO)
+      @last_rx = Time.monotonic
+    end
 
     def send_msg(op : Op, s : String)
       send_msg(op, s.to_slice)
@@ -39,6 +41,7 @@ module OGL
     
     def recv_msg_obj : Message?
       if tuple = Frame.read_msg(io)
+        @last_rx = Time.monotonic
         op, bytes = tuple
         Message.new(op, bytes)
       end
@@ -55,6 +58,10 @@ module OGL
 
     def recv_line : String?
       io.gets.try &.chomp
+    end
+
+    def last_rx : Time::Span
+      Time.monotonic - @last_rx
     end
 
     def close

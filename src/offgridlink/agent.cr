@@ -12,12 +12,21 @@ module OGL
     def run
       sock = TCPSocket.new @host, @port
       conn = Conn.new sock
-      if msg = conn.recv_msg_obj
-        puts "Server: #{msg.op} #{String.new(msg.payload)}"
-      end
 
-      conn.send_msg Message.new(Op::Pong, "Pong".to_slice)
-      conn.send_msg Message.new(Op::Data, "Hi from agent".to_slice)
+      while msg = conn.recv_msg_obj
+        case msg.op
+        when Op::Hello
+          puts "server hello: #{msg.string}"
+          conn.send_msg Message.new(Op::Pong, "PONG".to_slice)
+        when Op::Ping
+          conn.send_msg Message.new(Op::Pong, Bytes.empty)
+        when Op::Cmd, Op::Data
+          puts "server #{msg.op}: #{msg.string}"
+        else
+          # ignore for now
+        end
+      end
+      
       conn.close
     end
   end
