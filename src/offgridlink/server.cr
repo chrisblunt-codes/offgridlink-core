@@ -6,6 +6,7 @@ require "socket"
 require "./common/protocol"
 require "./common/conn"
 require "./common/op"
+require "./common/util"
 
 module OGL
   class Server
@@ -56,7 +57,7 @@ module OGL
       @lock.synchronize { @clients[id] = conn }
       puts "client ##{id} connected"
 
-      # greet once
+      conn.send_msg Message.new(Op::AssignId, OGL::Util.u64_be(id.to_u64))
       conn.send_msg Message.new(Op::Hello, "HELLO".to_slice)
 
       # keepalive / idle-timeout
@@ -90,6 +91,14 @@ module OGL
       conn.try &.close
       @lock.synchronize { @clients.delete(id) }
       puts "client ##{id} disconnected"
+    end
+
+    def send_to(id : Int64, op : Op, s : String)
+      @lock.synchronize do
+        if c = @clients[id]?
+          c.send_msg Message.new(op, s.to_slice)
+        end
+      end
     end
   end
 end

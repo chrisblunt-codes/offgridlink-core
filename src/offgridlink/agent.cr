@@ -5,6 +5,8 @@ require "socket"
 
 require "./common/protocol"
 require "./common/conn"
+require "./common/util"
+
 
 module OGL
   class Agent
@@ -30,6 +32,9 @@ module OGL
           case msg.op
           when Op::Hello
             conn.send_msg Message.new(Op::Hello, "OK".to_slice)
+          when Op::AssignId
+            @id = Util.be_u64(msg.payload)
+            puts "assigned id=#{@id}"
           when Op::Ping
             conn.send_msg Message.new(Op::Pong, Bytes.empty)
           when Op::Cmd, Op::Data
