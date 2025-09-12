@@ -12,25 +12,40 @@ module OGL
 
     def run
       sock = TCPSocket.new @host, @port
-      return unless Protocol.handshake_agent(sock)
+      sock.write_timeout = 2.seconds
+      unless Protocol.handshake_agent(sock)
+        puts "handshake failed"
+        sock.close
+        return
+      end
 
       conn = Conn.new sock
 
-      while msg = conn.recv_msg_obj
-        case msg.op
-        when Op::Hello
-          puts "server hello: #{msg.string}"
-          conn.send_msg Message.new(Op::Pong, "PONG".to_slice)
-        when Op::Ping
-          conn.send_msg Message.new(Op::Pong, Bytes.empty)
-        when Op::Cmd, Op::Data
-          puts "server #{msg.op}: #{msg.string}"
-        else
-          # ignore for now
+      # stay alive and respond to pings/commands
+      loop do
+        begin
+          msg = conn.recv_msg_obj
+          break unless msg # EOF -> server closed
+
+          case msg.op
+          when Op::Hello
+            conn.send_msg Message.new(Op::Hello, "OK".to_slice)
+          when Op::Ping
+            conn.send_msg Message.new(Op::Pong, Bytes.empty)
+          when Op::Cmd, Op::Data
+            # handle as needed; for now just log
+            puts "server #{msg.op}: #{msg.string}"
+          else
+            # ignore unknowns for now
+          end
+        rescue IO::Error
+          # timeout / broken pipe / reset, etc.
+          break
         end
       end
-      
-      conn.close
+
+      conn.close rescue nil
     end
+
   end
 end

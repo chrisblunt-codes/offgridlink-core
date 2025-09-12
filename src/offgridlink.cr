@@ -50,8 +50,9 @@ module OGL
 
   def self.run_server(port : Int32)
     srv = Server.new(port)
-    srv.on(Op::Pong) { |m| puts "PONG from agent: #{m.string}" }
-    srv.on(Op::Data) { |m| puts "DATA #{m.string.bytesize}B '#{m.string}'" }
+    srv.on(Op::Hello) { |m| puts "HELLO from agent: #{m.string}" }
+    srv.on(Op::Pong)  { |m| puts "PONG from agent: #{Time.utc}" }
+    srv.on(Op::Data)  { |m| puts "DATA #{m.string.bytesize}B '#{m.string}'" }
     srv.run
   end
 end

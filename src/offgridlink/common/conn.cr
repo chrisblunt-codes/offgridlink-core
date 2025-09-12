@@ -64,6 +64,10 @@ module OGL
       Time.monotonic - @last_rx
     end
 
+    def closed? : Bool
+      io.closed?
+    end
+    
     def close
       io.close
     end

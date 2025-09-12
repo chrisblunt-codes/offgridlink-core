@@ -17,53 +17,79 @@ module OGL
 
     def initialize(@port : Int32)
       @handlers = {} of Op => Handler
+      @clients  = {} of Int64 => Conn
+      @lock     = Mutex.new
+      @next_id  = Atomic(Int64).new(1_i64)
     end
 
     def on(op : Op, &block : Message ->)
       @handlers[op] = block
     end
 
-    def run
-      srv = TCPServer.new "0.0.0.0", @port
-      puts "Listening on #{@port}"
-      if sock = srv.accept?
-        return unless Protocol.handshake_server(sock)
-
-        conn = Conn.new sock
-
-        # greet once
-        conn.send_msg Message.new(Op::Hello, "HELLO".to_slice)
-        
-        # ping/timeout fiber
-        spawn do
-          loop do
-            sleep KEEPALIVE
-            if conn.last_rx > KEEPALIVE
-              conn.send_msg Message.new(Op::Ping, Bytes.empty)
-            end
-            if conn.last_rx > IDLE_KILL
-              puts "idle timeout; closing"
-              conn.close
-              break
-            end
-          end
-        end
-
-        # receive loop
-        while msg = conn.recv_msg_obj
-          case msg.op
-          when Op::Pong
-            puts "PONG (latency ok)"
-          when Op::Data
-            puts "DATA #{msg.string.bytesize}B '#{msg.string}'"
-          else
-            puts "unhandled #{msg.op}"
-          end
-        end
-
-        conn.close
+    def broadcast(op : Op, s : String)
+      @lock.synchronize do
+        @clients.each_value { |c| c.send_msg Message.new(op, s.to_slice) }
       end
     end
 
+    def run
+      srv = TCPServer.new "0.0.0.0", @port
+      puts "Listening on #{@port}"
+    
+      loop do
+        if sock = srv.accept?
+          sock.write_timeout = 2.seconds
+          # Let the handler run in its own fiber
+          spawn handle_client(sock)
+        end
+      end
+    end
+
+    def handle_client(sock : TCPSocket)
+      unless Protocol.handshake_server(sock)
+        sock.close
+        return
+      end
+
+      id = @next_id.add(1) - 1
+      conn = Conn.new sock
+      @lock.synchronize { @clients[id] = conn }
+      puts "client ##{id} connected"
+
+      # greet once
+      conn.send_msg Message.new(Op::Hello, "HELLO".to_slice)
+
+      # keepalive / idle-timeout
+      ka = spawn do
+        loop do
+          sleep KEEPALIVE
+
+          break if conn.closed?
+          if conn.last_rx > KEEPALIVE
+            conn.send_msg Message.new(Op::Ping, Bytes.empty)
+          end
+          if conn.last_rx > IDLE_KILL
+            puts "##{id} idle timeout; closing"
+            conn.close
+            break
+          end
+        end
+      end
+
+      # receive/dispatch loop
+      while msg = conn.recv_msg_obj
+        if h = @handlers[msg.op]?
+          h.call msg
+        else
+          puts "##{id} unhandled #{msg.op}: #{msg.string}"
+        end
+      end
+    rescue IO::Error
+      # connection dropped; fall through to cleanup
+    ensure
+      conn.try &.close
+      @lock.synchronize { @clients.delete(id) }
+      puts "client ##{id} disconnected"
+    end
   end
 end
