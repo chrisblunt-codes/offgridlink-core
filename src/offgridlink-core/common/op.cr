@@ -15,5 +15,11 @@ enum Op : UInt8
   File      = 0x21
   Cmd       = 0x22
 
-  # reserved for future (0x40+)
+  # tunnel channel (0x40–0x5F)
+  TunnelOpen  = 0x40
+  TunnelData  = 0x41
+  TunnelClose = 0x42
+  TunnelErr   = 0x43
+
+  # reserved for future (0x60+)
 end
