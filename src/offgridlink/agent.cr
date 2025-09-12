@@ -3,6 +3,7 @@
 
 require "socket"
 
+require "./common/protocol"
 require "./common/conn"
 
 module OGL
@@ -11,6 +12,8 @@ module OGL
 
     def run
       sock = TCPSocket.new @host, @port
+      return unless Protocol.handshake_agent(sock)
+
       conn = Conn.new sock
 
       while msg = conn.recv_msg_obj

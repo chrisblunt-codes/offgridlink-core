@@ -3,6 +3,7 @@
 
 require "socket"
 
+require "./common/protocol"
 require "./common/conn"
 require "./common/op"
 
@@ -26,6 +27,8 @@ module OGL
       srv = TCPServer.new "0.0.0.0", @port
       puts "Listening on #{@port}"
       if sock = srv.accept?
+        return unless Protocol.handshake_server(sock)
+
         conn = Conn.new sock
 
         # greet once
@@ -61,5 +64,6 @@ module OGL
         conn.close
       end
     end
+
   end
 end
