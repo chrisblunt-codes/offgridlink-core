@@ -1,4 +1,4 @@
-name: offgridlink
+name: offgridlink-core
 version: 0.1.0
 
 authors:
@@ -8,14 +8,8 @@ homepage: https://chrisblunt.codes
 repository: https://github.com/chrisblunt-codes/offgrid-link
 documentation: https://chrisblunt-codes.github.io/offgrid-link
 
-description: A lightweight tunneling system in Crystal for remote and bandwidth-limited environments.
+description: Lightweight framed binary protocol (length-prefixed), opcodes, handshake, keepalive, reconnect.
 
 license: Apache-2.0
 
 crystal: ">= 1.17.0"
-
-targets:
-  server:
-    main: src/ogl/server.cr
-  agent:
-    main: src/ogl/agent.cr

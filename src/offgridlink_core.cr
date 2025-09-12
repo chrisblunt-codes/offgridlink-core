@@ -3,11 +3,11 @@
 
 require "option_parser"
 
-require "./offgridlink/version"
-require "./offgridlink/common/op"
-require "./offgridlink/server"
-require "./offgridlink/agent"
-require "./offgridlink/sender"
+require "./offgridlink_core/version"
+require "./offgridlink_core/common/op"
+require "./offgridlink_core/server"
+require "./offgridlink_core/agent"
+require "./offgridlink_core/sender"
 
 
 module OGL

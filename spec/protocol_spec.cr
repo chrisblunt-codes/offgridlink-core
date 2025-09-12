@@ -2,13 +2,9 @@
 # Licensed under the Apache License, Version 2.0
 
 require "spec"
-
-require "../src/offgridlink/common/protocol" # MAGIC/VERSION + your handshake helpers
-
-
-require "spec"
 require "socket"
-require "../src/offgridlink/common/protocol"
+
+require "../src/offgridlink_core/common/protocol"
 
 describe "Protocol handshake" do
   it "completes server<->agent over TCP" do
@@ -108,5 +104,4 @@ describe "Protocol handshake" do
     server.close
     srv_ok.receive.should be_false
   end
-
 end

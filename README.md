@@ -1,16 +1,8 @@
 # Offgrid Link (OGL)
 
-**Offgrid Link (OGL)** is a lightweight, open-source tunneling system designed for **remote and bandwidth-limited environments** — ships at sea, field camps, disaster zones, research stations, or anywhere reliable Internet isn’t guaranteed.
+**Offgrid Link Core** is a lightweight framed binary protocol (length-prefixed), opcodes, handshake, keepalive, reconnect.
 
 Provides simple remote access to machines off the grid.
-
-## Features
-
-TBA
-
-## Roadmap 
-
-TBA
 
 ## Contributing
 

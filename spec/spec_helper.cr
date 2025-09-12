@@ -3,4 +3,4 @@
 
 require "spec"
 
-require "../src/offgridlink"
+require "../src/offgridlink_core"
