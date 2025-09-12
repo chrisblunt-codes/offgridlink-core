@@ -11,7 +11,9 @@ require "./common/util"
 
 module OGL
   class Agent
-    def initialize(@host : String, @port : Int32); end
+    def initialize(@host : String, @port : Int32)
+      @tunnel : TCPSocket?
+    end
 
     def run
       sock = TCPSocket.new @host, @port
@@ -69,13 +71,24 @@ module OGL
 
     private def process_msg(conn : Conn, msg : Message)
       case msg.op
-       when Op::Hello         then  conn.send_msg Message.new(Op::Hello, "OK".to_slice)
-       when Op::AssignId      then @id = Util.be_u64(msg.payload)
-       when Op::Ping          then conn.send_msg Message.new(Op::Pong, Bytes.empty)
-       when Op::Cmd, Op::Data then puts "server #{msg.op}: #{msg.string}"
-       else
-         # ignore unknowns for now
+      when Op::Hello         then conn.send_msg Message.new(Op::Hello, "OK".to_slice)
+      when Op::AssignId      then @id = Util.be_u64(msg.payload)
+      when Op::Ping          then conn.send_msg Message.new(Op::Pong, Bytes.empty)
+      when Op::Cmd, Op::Data then puts "server #{msg.op}: #{msg.string}"
+      when Op::TunnelOpen    then open_tunnel(msg.string, conn)
+      else
+        # ignore unknowns for now
       end
+    end
+
+    private def open_tunnel(dest : String, conn : Conn)
+      host, port_str = dest.split(":", 2)
+      port = port_str.to_i
+
+      @tunnel = TCPSocket.new(host, port)
+    rescue e
+      # If open fails, tell server we're done with this attempt
+      conn.send_msg Message.new(Op::TunnelClose, Bytes.empty)
     end
   end
 end
