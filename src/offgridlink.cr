@@ -6,6 +6,7 @@ require "option_parser"
 require "./offgridlink/version"
 require "./offgridlink/server"
 require "./offgridlink/agent"
+require "./offgridlink/common/op"
 
 
 module OGL
@@ -42,9 +43,16 @@ module OGL
     end
 
     case mode
-    when :server then Server.new(port).run
+    when :server then run_server(port)
     when :agent  then Agent.new(addr, port).run
     end
+  end
+
+  def self.run_server(port : Int32)
+    srv = Server.new(port)
+    srv.on(Op::Pong) { |m| puts "PONG from agent: #{m.string}" }
+    srv.on(Op::Data) { |m| puts "DATA #{m.string.bytesize}B '#{m.string}'" }
+    srv.run
   end
 end
 

@@ -4,6 +4,8 @@
 require "socket"
 
 require "./frame"
+require "./message"
+
 
 module OGL
   class Conn
@@ -19,6 +21,10 @@ module OGL
       Frame.write_msg(io, op, bytes)
     end
 
+    def send_msg(msg : Message)
+      Frame.write_msg(io, msg.op, msg.payload)
+    end
+
     def send_frame(s : String)
       send_frame s.to_slice
     end
@@ -31,6 +37,13 @@ module OGL
       Frame.read_msg(io)
     end
     
+    def recv_msg_obj : Message?
+      if tuple = Frame.read_msg(io)
+        op, bytes = tuple
+        Message.new(op, bytes)
+      end
+    end
+
     def recv_frame : Bytes?
       Frame.read(io)
     end

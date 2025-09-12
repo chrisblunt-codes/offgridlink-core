@@ -8,28 +8,30 @@ require "./common/op"
 
 module OGL
   class Server
+    alias Handler = Proc(Message, Nil)
+
     def initialize(@port : Int32)
-      @srv = TCPServer.new "0.0.0.0", @port
+      @handlers = {} of Op => Handler
+    end
+
+    def on(op : Op, &block : Message ->)
+      @handlers[op] = block
     end
 
     def run
-      puts "listening on #{@port}"
-      if conn = accept_once
-
-        conn.send_msg Op::Hello, "hello"
-
-        if tuple = conn.recv_msg
-          op, bytes = tuple
-          puts "got: #{op} #{String.new(bytes)}"
+      srv = TCPServer.new "0.0.0.0", @port
+      puts "Listening on #{@port}"
+      if sock = srv.accept?
+        conn = Conn.new sock
+        conn.send_msg Message.new(Op::Hello, "HELLO".to_slice)
+        while msg  = conn.recv_msg_obj
+          if h = @handlers[msg.op]?
+            h.call msg
+          else
+            puts "Unhandled message: #{msg.op} #{msg.string}"
+          end
         end
         conn.close
-      end
-    end
-
-    def accept_once : Conn?
-      if sock = @srv.accept?
-        puts "agent: #{sock.remote_address}"
-        Conn.new sock
       end
     end
   end
