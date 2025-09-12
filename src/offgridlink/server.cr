@@ -4,6 +4,7 @@
 require "socket"
 
 require "./common/conn"
+require "./common/op"
 
 module OGL
   class Server
@@ -15,9 +16,11 @@ module OGL
       puts "listening on #{@port}"
       if conn = accept_once
 
-        conn.send_frame "PING"
-        if bytes = conn.recv_frame
-          puts "got: #{String.new(bytes)}"
+        conn.send_msg Op::Hello, "hello"
+
+        if tuple = conn.recv_msg
+          op, bytes = tuple
+          puts "got: #{op} #{String.new(bytes)}"
         end
         conn.close
       end
