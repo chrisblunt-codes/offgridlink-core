@@ -4,9 +4,10 @@
 require "option_parser"
 
 require "./offgridlink/version"
+require "./offgridlink/common/op"
 require "./offgridlink/server"
 require "./offgridlink/agent"
-require "./offgridlink/common/op"
+require "./offgridlink/sender"
 
 
 module OGL
@@ -14,6 +15,8 @@ module OGL
     mode : Symbol? = nil
     addr = "127.0.0.1"
     port = 7000
+    to   = 0_i64
+    msg  = ""
 
     parser = OptionParser.new do |p|
       p.banner = "Usage: offgridlink [command] [options]"
@@ -29,6 +32,16 @@ module OGL
         p.on("--port PORT", "Server port (default: 7000)")         { |v| port = v.to_i }
       end
 
+      p.on("send", "Send a message to a specific client id") do
+        mode = :send
+        p.on("--addr HOST", "Server address") { |v| addr = v }
+        p.on("--port PORT", "Server port")    { |v| port = v.to_i }
+        p.on("--to ID", "Target client id")   { |v| to   = v.to_i64 }
+        p.unknown_args do |args|
+          msg = args.join(" ")
+        end
+      end
+
       p.on("-h", "--help", "Show help") do
         puts p
         exit 0
@@ -37,14 +50,14 @@ module OGL
 
     parser.parse
 
-    if mode.nil?
-      puts parser
-      exit 1
-    end
-
     case mode
     when :server then run_server(port)
     when :agent  then Agent.new(addr, port).run
+    when :send   then send_message(addr, port, to, msg)
+    else
+      puts "Unknown command"
+      puts parser
+      exit 1
     end
   end
 
@@ -54,6 +67,21 @@ module OGL
     srv.on(Op::Pong)  { |m| puts "PONG from agent: #{Time.utc}" }
     srv.on(Op::Data)  { |m| puts "DATA #{m.string.bytesize}B '#{m.string}'" }
     srv.run
+  end
+
+  def self.send_message(addr : String, port : Int32, to : Int64, msg : String)
+    if to < 0 || msg.empty?
+      STDERR.puts "Usage: offgridlink send --to <id> [--addr HOST --port PORT] <message>"
+      exit 1
+    end
+
+    if Sender.new(addr, port).send_to(to, msg)
+      puts "Message sent" 
+      exit 0
+    else 
+      puts "Failed to send message" 
+      exit 1
+    end
   end
 end
 

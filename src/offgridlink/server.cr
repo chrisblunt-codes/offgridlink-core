@@ -21,6 +21,16 @@ module OGL
       @clients  = {} of Int64 => Conn
       @lock     = Mutex.new
       @next_id  = Atomic(Int64).new(1_i64)
+
+      on Op::Route do |m|
+        # unpack [u64_be target][payload]
+        raise "route too short" if m.payload.size < 8
+
+        target = Util.be_u64(m.payload[0, 8]).to_i64
+        data   = m.payload[8, m.payload.size - 8]
+        
+        send_to(target, Op::Cmd, String.new(data))  # forward as Cmd by default
+      end
     end
 
     def on(op : Op, &block : Message ->)

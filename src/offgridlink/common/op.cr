@@ -7,6 +7,7 @@ enum Op : UInt8
   Ping      = 0x02
   Pong      = 0x03
   AssignId  = 0x04
+  Route     = 0x05  # [u64_be target_id][payload] -> server forwards to target
   Error     = 0x0F
 
   # data channel (0x20–0x3F)
