@@ -1,4 +1,4 @@
-# Offgrid Link (OGL)
+# Offgrid Link (OGL) Core
 
 **Offgrid Link Core** is a lightweight framed binary protocol (length-prefixed), opcodes, handshake, keepalive, reconnect.
 
