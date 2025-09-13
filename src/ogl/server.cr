@@ -8,7 +8,7 @@ require "./common/conn"
 require "./common/op"
 require "./common/util"
 
-module OGL
+module OGL::Core
   class Server
     KEEPALIVE = 15.seconds
     IDLE_KILL = 45.seconds

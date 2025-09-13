@@ -1,7 +1,7 @@
 # Copyright 2025 Chris Blunt
 # Licensed under the Apache License, Version 2.0
 
-module OGL
+module OGL::Core
   module Protocol
     MAGIC   = "OGL1"    # 4-byte ASCII tag
     VERSION = 1_u8      # protocol version

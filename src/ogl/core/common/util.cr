@@ -1,7 +1,7 @@
 # Copyright 2025 Chris Blunt
 # Licensed under the Apache License, Version 2.0
 
-module OGL::Util
+module OGL::Core::Util
   def self.u64_be(n : UInt64) : Bytes
     b = Bytes.new(8)
     8.times { |i| b[i] = ((n >> (56 - i*8)) & 0xFF).to_u8 }

@@ -6,7 +6,7 @@ require "./common/op"
 require "./common/util"
 require "./common/message"
 
-module OGL
+module OGL::Core
   class Sender
     def initialize(@host : String, @port : Int32); end
 

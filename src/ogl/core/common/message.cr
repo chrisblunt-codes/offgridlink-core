@@ -3,7 +3,7 @@
 
 require "./op"
 
-module OGL
+module OGL::Core
   class Message
     getter op       : Op
     getter payload  : Bytes

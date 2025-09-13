@@ -9,7 +9,7 @@ require "./common/backoff"
 require "./common/util"
 
 
-module OGL
+module OGL::Core
   class Agent
     def initialize(@host : String, @port : Int32)
       @tunnel : TCPSocket?

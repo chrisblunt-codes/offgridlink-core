@@ -7,7 +7,7 @@ require "./frame"
 require "./message"
 
 
-module OGL
+module OGL::Core
   class Conn
     getter io : IO
 

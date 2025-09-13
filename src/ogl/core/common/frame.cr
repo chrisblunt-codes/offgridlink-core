@@ -3,7 +3,7 @@
 
 require "socket"
 
-module OGL
+module OGL::Core
   class Frame
     # write: [u32_be len][u8 op][payload]
     def self.write_msg(io : IO, op : Op, payload : Bytes)

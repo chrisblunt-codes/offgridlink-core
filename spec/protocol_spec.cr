@@ -4,7 +4,7 @@
 require "spec"
 require "socket"
 
-require "../src/offgridlink_core/common/protocol"
+require "../src/ogl/core/common/protocol"
 
 describe "Protocol handshake" do
   it "completes server<->agent over TCP" do
@@ -17,7 +17,7 @@ describe "Protocol handshake" do
       if sock = server.accept?
         sock.read_timeout  = 1.second
         sock.write_timeout = 1.second
-        ok = OGL::Protocol.handshake_server(sock)  # returns Bool
+        ok = OGL::Core::Protocol.handshake_server(sock)  # returns Bool
         sock.close
         srv_ok.send(ok)
       else
@@ -29,7 +29,7 @@ describe "Protocol handshake" do
     client = TCPSocket.new "127.0.0.1", port
     client.read_timeout  = 1.second
     client.write_timeout = 1.second
-    cli_ok = OGL::Protocol.handshake_agent(client) # returns Bool
+    cli_ok = OGL::Core::Protocol.handshake_agent(client) # returns Bool
     client.close
 
     server.close
@@ -47,7 +47,7 @@ describe "Protocol handshake" do
       if sock = server.accept?
         sock.read_timeout  = 1.second
         sock.write_timeout = 1.second
-        ok = OGL::Protocol.handshake_server(sock)  # should be false
+        ok = OGL::Core::Protocol.handshake_server(sock)  # should be false
         sock.close
         srv_ok.send(ok)
       else
@@ -60,10 +60,10 @@ describe "Protocol handshake" do
     client.read_timeout  = 1.second
     client.write_timeout = 1.second
 
-    buf = Bytes.new(5)                              # 4 magic + 1 version
-    client.read_fully(buf)                          # read server prelude
-    client.write OGL::Protocol::MAGIC.to_slice      # echo magic
-    client.write_byte 0xFF_u8                       # WRONG version
+    buf = Bytes.new(5)                                    # 4 magic + 1 version
+    client.read_fully(buf)                                # read server prelude
+    client.write OGL::Core::Protocol::MAGIC.to_slice      # echo magic
+    client.write_byte 0xFF_u8                             # WRONG version
     client.flush
     client.close
 
@@ -81,7 +81,7 @@ describe "Protocol handshake" do
       if sock = server.accept?
         sock.read_timeout  = 1.second
         sock.write_timeout = 1.second
-        ok = OGL::Protocol.handshake_server(sock)  # should be false
+        ok = OGL::Core::Protocol.handshake_server(sock)  # should be false
         sock.close
         srv_ok.send(ok)
       else
@@ -94,10 +94,10 @@ describe "Protocol handshake" do
     client.read_timeout  = 1.second
     client.write_timeout = 1.second
 
-    buf = Bytes.new(5)                            # read "OGL1" + version
+    buf = Bytes.new(5)                                   # read "OGL1" + version
     client.read_fully(buf)
-    client.write "NOGL".to_slice                  # wrong 4-byte magic
-    client.write_byte OGL::Protocol::VERSION      # (even with correct version)
+    client.write "NOGL".to_slice                        # wrong 4-byte magic
+    client.write_byte OGL::Core::Protocol::VERSION      # (even with correct version)
     client.flush
     client.close
 
