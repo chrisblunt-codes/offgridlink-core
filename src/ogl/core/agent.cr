@@ -50,7 +50,7 @@ module OGL::Core
           attempt = 0  # clean exit -> reset backoff
         else
           attempt += 1
-          sleep OGL::Backoff.next_delay(attempt)
+          sleep Backoff.next_delay(attempt)
         end
       end
     end
