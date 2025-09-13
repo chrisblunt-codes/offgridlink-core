@@ -17,7 +17,7 @@ module OGL::Core
       conn = Conn.new sock
 
       buf = IO::Memory.new
-      buf.write OGL::Util.u64_be(target_id.to_u64)  # 8 bytes
+      buf.write Util.u64_be(target_id.to_u64)  # 8 bytes
       buf.write text.to_slice
       env = buf.to_slice
 

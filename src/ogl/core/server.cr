@@ -72,7 +72,7 @@ module OGL::Core
         conn.send_msg Message.new(Op::TunnelOpen, target.to_slice)
       end
 
-      conn.send_msg Message.new(Op::AssignId, OGL::Util.u64_be(id.to_u64))
+      conn.send_msg Message.new(Op::AssignId, Util.u64_be(id.to_u64))
       conn.send_msg Message.new(Op::Hello, "HELLO".to_slice)
 
       # keepalive / idle-timeout
