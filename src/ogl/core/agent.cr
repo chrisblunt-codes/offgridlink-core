@@ -11,8 +11,9 @@ require "./common/util"
 
 module OGL::Core
   class Agent
+    tunnel : TCPSocket?
+
     def initialize(@host : String, @port : Int32)
-      @tunnel : TCPSocket?
     end
 
     def run
